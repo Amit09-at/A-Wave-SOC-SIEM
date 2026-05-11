@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>A-Wave | Command Center</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+    <link rel="stylesheet" href="/static/css/style.css">
+
+    <style>
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .profile-menu {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 30px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 5px;
+            width: 150px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+        }
+
+        .dropdown.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 10px;
+            color: #cbd5e1;
+            border-bottom: 1px solid #334155;
+            transition: 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background: #334155;
+            color: white;
+        }
+
+        .search-wrapper {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-left: auto;
+        }
+
+        .search-input {
+            background: transparent;
+            border: none;
+            color: white;
+            font-family: 'Inter';
+            outline: none;
+            margin-left: 5px;
+            font-size: 13px;
+            width: 150px;
+        }
+
+        .btn-scan {
+            background: rgba(6, 182, 212, 0.2);
+            border: 1px solid #06b6d4;
+            color: #06b6d4;
+            padding: 2px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            margin-left: 5px;
+        }
+
+        .btn-scan:hover {
+            background: #06b6d4;
+            color: black;
+        }
+
+        .btn-download {
+            background: none;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .btn-download:hover {
+            border-color: #06b6d4;
+            color: #06b6d4;
+        }
+
+        @keyframes blink-red {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .honey-active {
+            border: 2px solid #ef4444 !important;
+            background: rgba(239, 68, 68, 0.2) !important;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.5) !important;
+            animation: blink-red 1.5s infinite;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+        }
+
+        .modal-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 10px;
+            width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            font-family: sans-serif;
+        }
+
+        .modal-header {
+            font-weight: bold;
+            font-size: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            color: #d32f2f;
+        }
+
+        .close-btn {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            float: right;
+            font-weight: bold;
+        }
+
+        .close-btn:hover {
+            background: #555;
+        }
+
+        /* Dark Modals for Logs/Settings */
+        .dark-modal {
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: white;
+            width: 800px;
+        }
+
+        .dark-header {
+            color: #67e8f9;
+            border-bottom: 1px solid #334155;
+            font-size: 18px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #334155;
+            transition: .4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #10b981;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(20px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar glass">
+        <div class="logo-area">
+            <h2>A-Wave <span class="blink">_</span></h2>
+            <p class="subtitle">SOC OS v1.0</p>
+        </div>
+        <nav>
+            <a class="active">⚡ Dashboard</a>
+            <a style="cursor: pointer;" onclick="fetchLiveLogs()">📝 Live Logs</a>
+            <a style="cursor: pointer;" onclick="openThreatModal()">🚨 Threat Intel</a>
+        </nav>
+        <div class="sys-status">
+            <button onclick="downloadReport()" class="vuln-btn" style="background:#0f172a; border:1px solid #334155;">
+                📄 GET REPORT
+            </button>
+        </div>
+    </div>
+
+    <div class="main">
+        <header>
+            <div>
+                <h1>Command Center</h1>
+                <p class="user-welcome">
+                    Operator:
+                    <span class="highlight profile-menu" onclick="toggleProfile()">
+                        Admin ▼
+                        <div class="dropdown" id="profileDropdown">
+                            <div class="dropdown-item" onclick="openSettingsModal()">⚙️ Settings</div>
+                            <div class="dropdown-item" onclick="logout()" style="color:#ef4444;">🚪 Logout</div>
+                        </div>
+                    </span>
+                </p>
+            </div>
+            <div class="live-clock" id="clock">00:00:00</div>
+        </header>
+
+        <div class="kpi-grid">
+            <div class="card glass">
+                <h3>Total Logs</h3>
+                <h2 id="totalLogs">0</h2>
+            </div>
+            <div class="card glass">
+                <h3>Active Threats</h3>
+                <h2 id="totalAlerts" style="color: #ef4444;">0</h2>
+            </div>
+            <div class="card glass active-monitor">
+                <h3>AI Sentinel</h3>
+                <h2 id="aiStatus">ACTIVE</h2>
+                <p class="recon-text"
+                    style="font-size:10px; color:#94a3b8; margin-top:5px; border-top:1px solid #334155; padding-top:5px;">
+                    Offensive Recon Engine:<br>
+                    <span style="color:#f59e0b; font-weight:bold;">sqlmap • nikto confirmed</span>
+                </p>
+                <div class="pulse"></div>
+            </div>
+            <div class="card glass" id="honeyCard">
+                <h3>🪤 Honeyfile Trap</h3>
+                <h2 id="honeyStatus" style="color: #10b981;">ARMED</h2>
+            </div>
+        </div>
+
+        <div class="viz-grid">
+            <div class="card glass map-container">
+                <h3>🌍 Live Threat Map</h3>
+                <div id="map" style="height: 250px; width: 100%; border-radius: 8px;"></div>
+            </div>
+            <div class="card glass chart-container">
+                <h3>📈 Anomaly Detection</h3>
+                <canvas id="trafficChart"></canvas>
+            </div>
+        </div>
+
+        <div class="bottom-grid">
+            <div class="card glass table-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>🚨 Active Threats</h3>
+                    <div style="display:flex; align-items:center;">
+                        <div class="search-wrapper">
+                            <span class="material-icons-round" style="font-size: 16px; color: #94a3b8;">search</span>
+                            <input type="text" id="searchInput" class="search-input" placeholder="Filter IPs..."
+                                onkeyup="filterTable()">
+                        </div>
+                        <button class="btn-download" onclick="downloadReport()" title="Download CSV">⬇ CSV</button>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Source IP</th>
+                                <th>Type</th>
+                                <th>Severity</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alertsTable"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card glass ticker-card">
+                <h3>📟 Live Packet Stream</h3>
+                <div id="logTicker" class="ticker-box"
+                    style="font-family:monospace; font-size:12px; color:#94a3b8; height:200px; overflow:hidden;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="ai-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">🤖 A-Wave AI Security Copilot</div>
+            <div id="ai-content">
+                <p>Initializing neural analysis...</p>
+            </div>
+            <div style="margin-top: 25px; overflow: hidden;">
+                <button class="close-btn" onclick="closeModal('ai-modal')">Acknowledge</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="logs-modal" class="modal-overlay">
+        <div class="modal-box dark-modal">
+            <div class="dark-header">
+                <span class="material-icons-round" style="vertical-align: middle;">terminal</span> Raw System Telemetry
+            </div>
+            <div style="background: #000; padding: 10px; border-radius: 5px; height: 300px; overflow-y: scroll;">
+                <pre id="raw-logs-content"
+                    style="color: #10b981; font-family: 'JetBrains Mono', monospace; font-size: 12px; white-space: pre-wrap; margin: 0;"></pre>
+            </div>
+            <div style="margin-top: 15px; overflow: hidden;">
+                <button class="close-btn" style="background: #334155;" onclick="closeModal('logs-modal')">Close
+                    Terminal</button>
+                <button class="btn-scan" style="float: left;" onclick="fetchLiveLogs()">🔄 Refresh Stream</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="threat-modal" class="modal-overlay">
+        <div class="modal-box dark-modal" style="width: 600px;">
+            <div class="dark-header">🚨 Global Threat Intelligence Feed</div>
+            <div id="threat-content" style="height: 300px; overflow-y: auto;">
+                <p style="color:#94a3b8;">Connecting to global OSINT servers...</p>
+            </div>
+            <div style="margin-top: 15px; overflow: hidden;">
+                <button class="close-btn" style="background: #334155;" onclick="closeModal('threat-modal')">Close
+                    Feed</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal-overlay">
+        <div class="modal-box dark-modal" style="width: 500px;">
+            <div class="dark-header">⚙️ System Configuration</div>
+            <div>
+                <div class="setting-row">
+                    <span>Enable AI Copilot Analysis</span>
+                    <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                </div>
+                <div class="setting-row">
+                    <span>Auto-Ban Critical Threat IPs</span>
+                    <label class="switch"><input type="checkbox"><span class="slider"></span></label>
+                </div>
+                <div class="setting-row">
+                    <span>Arm Honeyfile Trap Directory</span>
+                    <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                </div>
+                <div class="setting-row" style="border-bottom: none;">
+                    <span>Strict WAF Ruleset (Block All SQLi)</span>
+                    <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                </div>
+            </div>
+            <div style="margin-top: 25px; overflow: hidden;">
+                <button class="close-btn" style="background: #10b981;" onclick="closeModal('settings-modal')">Save
+                    Configurations</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+
+</html>

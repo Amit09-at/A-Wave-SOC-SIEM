@@ -1,0 +1,28 @@
+venv/
+.env
+__pycache__/
+# Python
+__pycache__/
+*.pyc
+
+# Virtual Environment
+venv/
+
+# Environment Variables
+.env
+
+# Database
+*.db
+*.sqlite3
+
+# Mac
+.DS_Store
+
+# Logs
+logs/*.log
+
+# AI Models
+*.pkl
+
+# VS Code
+.vscode/

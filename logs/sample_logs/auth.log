@@ -1,0 +1,3 @@
+Feb 10 10:00:00 server sshd[123]: Failed password for root from 192.168.1.10 port 22 ssh2
+Feb 10 10:00:02 server sshd[123]: Failed password for root from 192.168.1.10 port 22 ssh2
+Feb 10 10:05:00 server sshd[456]: Accepted password for amit from 10.0.0.5 port 22 ssh2

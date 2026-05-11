@@ -1,0 +1,149 @@
+/* --- A-WAVE CYBERPUNK THEME (FIXED LAYOUT) --- */
+:root {
+    --bg-dark: #0a0e17;
+    --glass-bg: rgba(20, 30, 46, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --text-primary: #e2e8f0;
+    --text-muted: #94a3b8;
+    
+    --accent-cyan: #06b6d4;
+    --accent-blue: #3b82f6;
+    --accent-red: #ef4444;
+    --accent-green: #10b981;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    height: 100vh; /* Lock body height */
+    overflow: hidden; /* Prevent body scroll */
+}
+
+/* UTILITIES */
+.glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+}
+
+/* SIDEBAR */
+.sidebar {
+    position: fixed;
+    width: 240px;
+    height: 96vh;
+    top: 2vh;
+    left: 1vw;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+.sidebar h2 { color: var(--accent-cyan); font-family: 'JetBrains Mono', monospace; }
+nav { margin-top: 40px; flex-grow: 1; }
+nav a {
+    display: block;
+    padding: 12px;
+    margin: 8px 0;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: 0.3s;
+}
+nav a:hover, nav a.active { color: var(--accent-cyan); background: rgba(6,182,212,0.1); border-radius: 8px;}
+
+/* MAIN CONTENT AREA */
+.main {
+    margin-left: 260px;
+    padding: 2vh 2vw;
+    height: 100vh;
+    overflow-y: auto; /* Allow scroll ONLY here */
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* HEADER */
+header { display: flex; justify-content: space-between; align-items: center; height: 60px; flex-shrink: 0; }
+.highlight { color: var(--accent-green); }
+
+/* --- DASHBOARD GRID (THE FIX) --- */
+/* We use explicit heights to prevent flickering */
+
+/* 1. KPI CARDS (Top Row) */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    height: 140px; /* Fixed height */
+    flex-shrink: 0;
+}
+.card { padding: 20px; display: flex; flex-direction: column; justify-content: center; }
+.card h2 { font-size: 2rem; margin-top: 5px; }
+
+/* 2. VISUALIZATION ROW (Map + Chart) */
+.viz-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 50% Map, 50% Chart */
+    gap: 20px;
+    height: 350px; /* STRICT FIXED HEIGHT - Prevents infinite growth */
+    flex-shrink: 0; /* Don't shrink */
+}
+
+/* Container fixes for Chart.js and Leaflet */
+.map-container, .chart-container {
+    position: relative; /* Essential for Chart.js */
+    width: 100%;
+    height: 100%; /* Fill the 350px parent */
+    overflow: hidden; /* Cut off anything that sticks out */
+    padding: 15px;
+}
+
+#map { 
+    width: 100%; 
+    height: 100%; 
+    border-radius: 8px; 
+    z-index: 1; /* Ensure map stays below overlays */
+}
+
+canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* 3. BOTTOM ROW (Alerts + Logs) */
+.bottom-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    height: 300px; /* Fixed height for tables */
+    flex-shrink: 0;
+    margin-bottom: 20px; /* Space at bottom */
+}
+
+/* TABLES & TICKER */
+.table-card, .ticker-card {
+    padding: 15px;
+    overflow: hidden;
+}
+.table-wrapper {
+    height: 100%;
+    overflow-y: auto; /* Scroll inside the table, not the page */
+}
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.85rem; }
+th { color: var(--text-muted); position: sticky; top: 0; background: #151e2e; } /* Sticky Header */
+
+.ticker-box {
+    height: 90%;
+    overflow-y: hidden; /* Hide scrollbar for matrix effect */
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+}
+.log-entry { padding: 3px 0; border-bottom: 1px dashed rgba(255,255,255,0.1); color: var(--accent-green); }
+
+/* --- UTILS --- */
+.hidden { display: none !important; }
+.text-danger { color: var(--accent-red); }
