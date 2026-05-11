@@ -26,3 +26,4 @@ logs/*.log
 
 # VS Code
 .vscode/touch.env
+.vscode/
