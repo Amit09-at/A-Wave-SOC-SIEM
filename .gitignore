@@ -25,4 +25,4 @@ logs/*.log
 *.pkl
 
 # VS Code
-.vscode/
+.vscode/touch.env
